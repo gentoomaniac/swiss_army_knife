@@ -20,11 +20,17 @@ LOGGER.addHandler(ch)
 
 THREADS = []
 
-def signal_handler(signum):
-    for thread in THREADS:
-        thread.kill()
+RUN = True
+
+def thread_cleanup(signum=None, frame=None):
+    global THREADS, RUN
+
+    RUN = False
+
+    LOGGER.debug("Thread cleanup: %d threads running" % len(THREADS))
 
 def server_loop(fwd_ip, fwd_port, listen_ip="0.0.0.0", listen_port=8080):
+    global THREADS, RUN
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
@@ -37,13 +43,19 @@ def server_loop(fwd_ip, fwd_port, listen_ip="0.0.0.0", listen_port=8080):
 
     server.listen(5)
 
-    while True:
-        client_sock, addr = server.accept()
-        LOGGER.info("[=>] new connection accepted from %s:%d" % (addr[0], addr[1]))
+    while RUN:
+        LOGGER.debug("[*] waiting for new client connection")
+        try:
+            client_sock, addr = server.accept()
+        except socket.error:
+            LOGGER.info("[*] interrupted. Exiting ...")
+            return
 
+        LOGGER.info("[=>] new connection accepted from %s:%d" % (addr[0], addr[1]))
         proxy_thread = threading.Thread(target=proxy_handler,
                 args=(client_sock, fwd_ip, fwd_port))
         proxy_thread.start()
+        THREADS.append(proxy_thread)
 
 def proxy_handler(client_sock, fwd_ip, fwd_port):
     global THREADS
@@ -64,8 +76,9 @@ def proxy_handler(client_sock, fwd_ip, fwd_port):
     THREADS.append(remote_thread)
 
 def connection_handler(input_socket, output_socket):
+    global RUN
     LOGGER.info("[*] starting connection handler in:%s os:%s." % (input_socket.getpeername(), output_socket.getpeername()))
-    while True:
+    while RUN:
         try:
             buff = receive_from(input_socket)
         except socket.timeout:
@@ -74,16 +87,23 @@ def connection_handler(input_socket, output_socket):
             break
 
         if len(buff):
-            LOGGER.info("[%s] received %d bytes" %
-                        (input_socket.getpeername(), len(buff)))
+            LOGGER.debug("[%s -> %s] received %d bytes" %
+                        (input_socket.getpeername()[0], output_socket.getpeername()[0], len(buff)))
             try:
                 output_socket.send(buff)
-                LOGGER.info("[<>] forwarding %d bytes to %s" %
-                            (len(buff), output_socket.getpeername()))
+                LOGGER.debug("[%s -> %s] forwarding %d bytes" %
+                            ( input_socket.getpeername()[0], output_socket.getpeername()[0], len(buff)))
             except socket.timeout:
                 LOGGER.info("[*] %s timed out. Closing connections." % output_socket.getpeername())
                 input_socket.close()
                 break
+
+    # try cleaning up the input socket
+    try:
+        LOGGER.debug("[*] closing connection to %s" % input_socket.getpeername())
+        input_socket.close()
+    except:
+        pass
 
 def receive_from(connection):
     buffer = ""
@@ -108,9 +128,12 @@ def main():
     fwd_ip = "tmbt.de"
     fwd_port = 22
 
-    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGTERM, thread_cleanup)
 
-    server_loop(fwd_ip, fwd_port)
+    try:
+        server_loop(fwd_ip, fwd_port)
+    except KeyboardInterrupt:
+        thread_cleanup()
 
 if __name__ == '__main__':
     main()
