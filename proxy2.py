@@ -11,9 +11,11 @@ import signal
 import socket
 import sys
 
+from optparse import OptionParser
+
 FORMAT = '%(asctime)-15s - %(message)s'
 LOGGER = logging.getLogger('scriptlogger')
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 ch = logging.StreamHandler()
 ch.setFormatter(logging.Formatter(FORMAT))
 LOGGER.addHandler(ch)
@@ -24,9 +26,7 @@ RUN = True
 
 def thread_cleanup(signum=None, frame=None):
     global THREADS, RUN
-
     RUN = False
-
     LOGGER.debug("Thread cleanup: %d threads running" % len(THREADS))
 
 def server_loop(fwd_ip, fwd_port, listen_ip="0.0.0.0", listen_port=8080):
@@ -40,6 +40,7 @@ def server_loop(fwd_ip, fwd_port, listen_ip="0.0.0.0", listen_port=8080):
         sys.exit(1)
 
     LOGGER.info("[*] server listening to %s:%d" % (listen_ip, listen_port))
+    LOGGER.info("[*] forwarding to %s:%d" % (fwd_ip, fwd_port))
 
     server.listen(5)
 
@@ -123,17 +124,34 @@ def receive_from(connection):
 def main():
     """ main program
     """
-    listen_ip = "0.0.0.0"
-    listen_port = 8080
-    fwd_ip = "tmbt.de"
-    fwd_port = 22
+    parser = OptionParser()
+    parser.add_option("-d", "--debug",
+                  action="store_true", dest="debug", default=False,
+                  help="print debug information")
+    (options, args) = parser.parse_args()
+
+    if options.debug:
+        LOGGER.setLevel(logging.DEBUG)
+
+    if len(args) < 2:
+        print "Usage: %s listenaddress:port remoteaddress:port" % sys.argv[0]
+        print ""
+        print "example: %s 0.0.0.0:9000 8.8.4.4:53" % sys.argv[0]
+        sys.exit(0)
+
+    listen = args[0].split(":")
+    remote = args[1].split(":")
 
     signal.signal(signal.SIGTERM, thread_cleanup)
 
     try:
-        server_loop(fwd_ip, fwd_port)
+        server_loop(remote[0], int(remote[1]), listen_ip=listen[0], listen_port=int(listen[1]))
     except KeyboardInterrupt:
         thread_cleanup()
+    except ValueError:
+        print "invalid port"
+        sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
