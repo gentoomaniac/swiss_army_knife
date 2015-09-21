@@ -151,6 +151,8 @@ def main():
     except ValueError:
         print "invalid port"
         sys.exit(1)
+    except IndexError:
+        print "specify local and remote ip/port like '127.0.0.1:22'"
 
 
 if __name__ == '__main__':
