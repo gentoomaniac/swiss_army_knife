@@ -1,0 +1,58 @@
+#! /usr/bin/env bash
+
+SSH_AGENT=$(which ssh-agent)
+SSH_ADD=$(which ssh-add)
+SSH_ENV="$(mktemp /tmp/ssh-agent-env.XXXXXX)"
+
+
+function cleanup {
+    [ ! -z "${SSH_AGENT_PID}" ] && kill "${SSH_AGENT_PID}"
+    [ -e "${SSH_ENV}" ] && rm "${SSH_ENV}"
+}
+
+trap 'cleanup' EXIT
+
+
+function start_agent {
+    ${SSH_AGENT} > "${SSH_ENV}"
+    chown "${USER}.${USER}" "${SSH_ENV}"
+    chmod 600 "${SSH_ENV}"
+    . "${SSH_ENV}" > /dev/null
+}
+
+function add_key {
+    ${SSH_ADD} "$1"
+}
+
+
+OPTIND=1
+while getopts "d?h?k:" opt; do
+    case ${opt} in
+        d)
+            set -x
+            ;;
+        h)
+            echo "Help me Obi Wan Kenobi you're my only hope\!"
+            exit
+            ;;
+        k)
+            PKEYS=${OPTARG}
+            ;;
+    esac
+done
+
+shift $((OPTIND-1))
+[ "$1" = "--" ] && shift
+
+if [ -z "${PKEYS}" ]; then
+    echo "You must specify at least one ssh key"
+    exit 1
+fi
+
+start_agent
+
+for key in $(tr ":" " " <<<"${PKEYS}"); do
+    add_key "${key}"
+done
+
+"$@"
