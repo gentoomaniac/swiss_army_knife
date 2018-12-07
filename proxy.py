@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-""" Sample Script
-    Version 0.1
-"""
+# Sample Script
+# Version 0.1
 
-#import argparse
 import logging
 import threading
 import socket
 import sys
+
 
 FORMAT = '%(asctime)-15s - %(message)s'
 LOGGER = logging.getLogger('scriptlogger')
@@ -18,12 +17,13 @@ ch = logging.StreamHandler()
 ch.setFormatter(logging.Formatter(FORMAT))
 LOGGER.addHandler(ch)
 
+
 def server_loop(fwd_ip, fwd_port, recv_first, listen_ip="0.0.0.0", listen_port=8080):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
         server.bind((listen_ip, listen_port))
-    except:
+    except Exception:
         LOGGER.error("[!!!] Couldn't bind to %s:%d" % (listen_ip, listen_port))
         sys.exit(1)
 
@@ -35,9 +35,9 @@ def server_loop(fwd_ip, fwd_port, recv_first, listen_ip="0.0.0.0", listen_port=8
         client_sock, addr = server.accept()
         LOGGER.info("[=>] new connection accepted from %s:%d" % (addr[0], addr[1]))
 
-        proxy_thread = threading.Thread(target=proxy_handler,
-                args=(client_sock, fwd_ip, fwd_port, recv_first))
+        proxy_thread = threading.Thread(target=proxy_handler, args=(client_sock, fwd_ip, fwd_port, recv_first))
         proxy_thread.start()
+
 
 def proxy_handler(client_sock, fwd_ip, fwd_port, recv_first):
     LOGGER.info("[<=] opening connection to remote host")
@@ -64,10 +64,11 @@ def proxy_handler(client_sock, fwd_ip, fwd_port, recv_first):
             remote_buff = response_handler(remote_buff)
             client_sock.send(remote_buff)
 
-        #if not len(remote_buff) or not len(local_buff):
-        #    client_sock.close()
-        #    remote_sock.close()
-        #    LOGGER.info("[*] No more data. Closing connections")
+        # if not len(remote_buff) or not len(local_buff):
+        #     client_sock.close()
+        #     remote_sock.close()
+        #     LOGGER.info("[*] No more data. Closing connections")
+
 
 def receive_from(connection):
     buffer = ""
@@ -79,7 +80,7 @@ def receive_from(connection):
             if not data:
                 break
             buffer += data
-    except:
+    except Exception:
         pass
 
     return buffer
@@ -88,14 +89,14 @@ def receive_from(connection):
 def request_handler(buffer):
     return buffer
 
+
 def response_handler(buffer):
     return buffer
+
 
 def main():
     """ main program
     """
-    listen_ip = "0.0.0.0"
-    listen_port = 8080
     fwd_ip = "tmbt.de"
     fwd_port = 22
     recv_first = True
