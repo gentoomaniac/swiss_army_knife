@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """ Sample Script
     Version 0.1
 """
@@ -18,6 +17,7 @@ ch = logging.StreamHandler()
 ch.setFormatter(logging.Formatter(FORMAT))
 LOGGER.addHandler(ch)
 
+
 def main():
     """ main program
     """
@@ -30,9 +30,7 @@ def main():
         sys.exit(1)
 
     parser = OptionParser()
-    parser.add_option("-d", "--debug",
-                  action="store_true", dest="debug", default=False,
-                  help="print debug information")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False, help="print debug information")
     (options, args) = parser.parse_args()
 
     if options.debug:
@@ -68,6 +66,7 @@ def main():
         except:
             continue
         LOGGER.info("[OPEN] %d" % port)
+
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """ Sample Script
     Version 0.1
 """
@@ -12,7 +11,6 @@ import socket
 import sys
 
 from optparse import OptionParser
-
 
 FORMAT = '%(asctime)-15s - %(message)s'
 LOGGER = logging.getLogger('scriptlogger')
@@ -80,9 +78,8 @@ def proxy_handler(client_sock, fwd_ip, fwd_port):
 
 def connection_handler(input_socket, output_socket):
     global RUN
-    LOGGER.info("[*] starting connection handler in:%s os:%s." % (
-        input_socket.getpeername(),
-        output_socket.getpeername()))
+    LOGGER.info(
+        "[*] starting connection handler in:%s os:%s." % (input_socket.getpeername(), output_socket.getpeername()))
     while RUN:
         try:
             buff = receive_from(input_socket)
@@ -92,12 +89,12 @@ def connection_handler(input_socket, output_socket):
             break
 
         if len(buff):
-            LOGGER.debug("[%s -> %s] received %d bytes" % (
-                input_socket.getpeername()[0], output_socket.getpeername()[0], len(buff)))
+            LOGGER.debug("[%s -> %s] received %d bytes" % (input_socket.getpeername()[0],
+                                                           output_socket.getpeername()[0], len(buff)))
             try:
                 output_socket.send(buff)
-                LOGGER.debug("[%s -> %s] forwarding %d bytes" % (
-                    input_socket.getpeername()[0], output_socket.getpeername()[0], len(buff)))
+                LOGGER.debug("[%s -> %s] forwarding %d bytes" % (input_socket.getpeername()[0],
+                                                                 output_socket.getpeername()[0], len(buff)))
             except socket.timeout:
                 LOGGER.info("[*] %s timed out. Closing connections." % output_socket.getpeername())
                 input_socket.close()
@@ -131,8 +128,7 @@ def main():
     """ main program
     """
     parser = OptionParser()
-    parser.add_option(
-            "-d", "--debug", action="store_true", dest="debug", default=False, help="print debug information")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", default=False, help="print debug information")
     (options, args) = parser.parse_args()
 
     if options.debug:

@@ -9,7 +9,6 @@ import threading
 import socket
 import sys
 
-
 FORMAT = '%(asctime)-15s - %(message)s'
 LOGGER = logging.getLogger('scriptlogger')
 LOGGER.setLevel(logging.DEBUG)

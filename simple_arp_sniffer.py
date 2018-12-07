@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """ Sample Script
     Version 0.1
 """
@@ -26,6 +25,8 @@ found_hosts = {}
 def sigterm_handler():
     global RUN
     RUN = False
+
+
 #    print ""
 #    for ip in found_hosts:
 #        print "Found %s with mac %s" % (ip, found_hosts[ip])
@@ -80,14 +81,8 @@ def sniff_arp_requests():
         else:
             continue
 
-        LOGGER.info(
-                "[new][%s]\t eth_src_mac: %s\tsrc_ip: %s\tsrc_mac: %s\tdest_ip: %s\tdest_mac: %s",
-                opcode,
-                eth_src_mac,
-                src_ip,
-                src_mac,
-                dest_ip,
-                dest_mac)
+        LOGGER.info("[new][%s]\t eth_src_mac: %s\tsrc_ip: %s\tsrc_mac: %s\tdest_ip: %s\tdest_mac: %s", opcode,
+                    eth_src_mac, src_ip, src_mac, dest_ip, dest_mac)
 
         # print "****************_ETHERNET_FRAME_****************"
         # print "Dest MAC:        ", binascii.hexlify(ethernet_detailed[0])
