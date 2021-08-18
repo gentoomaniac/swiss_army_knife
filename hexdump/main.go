@@ -24,9 +24,9 @@ var cli struct {
 	Quiet   bool `short:"q" help:"Do not run upgrades."`
 	Json    bool `help:"Log as json"`
 
-	Blocksize    int   `help:"number of bytes per row. Must be a multiple of 8" short:"b" default:"16"`
-	NumberBlocks int   `help:"dump only the given number of blocks (a block as defined by --blocksize)" short:"n" default:"8"`
-	Offset       int64 `help:"seek the given number of bytes into the file" short:"o" default:"0"`
+	Blocksize  int   `help:"number of bytes per row. Must be a multiple of 8" short:"b" default:"16"`
+	NumberRows int   `help:"number of rows to print, default is all" short:"n"`
+	Offset     int64 `help:"seek the given number of bytes into the file" short:"o" default:"0"`
 
 	Filename string `help:"File to open" arg:"" optional:""`
 
@@ -135,7 +135,7 @@ func main() {
 		if read < cli.Blocksize {
 			break
 		}
-		if cli.NumberBlocks > 0 && allBytes >= cli.Offset+int64(cli.NumberBlocks)*int64(cli.Blocksize) {
+		if cli.NumberRows > 0 && allBytes >= cli.Offset+int64(cli.NumberRows)*int64(cli.Blocksize) {
 			break
 		}
 	}
