@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
-SSH_AGENT=$(which ssh-agent)
-SSH_ADD=$(which ssh-add)
+SSH_AGENT=$(command -v ssh-agent)
+SSH_ADD=$(command -v ssh-add)
 SSH_ENV="$(mktemp /tmp/ssh-agent-env.XXXXXX)"
 
 
@@ -32,11 +32,15 @@ while getopts "d?h?k:" opt; do
             set -x
             ;;
         h)
-            echo "Help me Obi Wan Kenobi you're my only hope\!"
+            echo 'Help me Obi Wan Kenobi you are my only hope!'
             exit
             ;;
         k)
             PKEYS=${OPTARG}
+            ;;
+        *)
+            echo 'Invalid parameter'
+            exit 1
             ;;
     esac
 done
